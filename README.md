@@ -49,7 +49,7 @@ adb install apk/SixthSense_SixthSense_release.apk
 | 빌드 | minSdk 28 / targetSdk 34 / compileSdk 34, Gradle 8.14, AGP 8.7, Kotlin 2.0, JDK 17 이상 |
 | 권한 | `android.car.permission.CAR_SPEED`(런타임), `CAR_POWERTRAIN`, `pleos.car.permission.CAR_SAFETY·SEATS·DOORS·LIGHTS·DRIVE`, 알림(`POST_NOTIFICATIONS`), 부팅 후 자동 시작(`RECEIVE_BOOT_COMPLETED`), 마이크(청각장애 프로필, 선택) |
 | Virtual Console | `adb forward tcp:8088 tcp:8088` 후 `http://127.0.0.1:8088/` |
-| 카메라 | 불필요 (Pleos 공개 API에 카메라 없음 → 신호 인식은 합성 영상·3D 시뮬레이션으로 검증, 아래 참고) |
+|| 카메라 | 향후 확장 (현재 Pleos API 범위 외이나, 향후 자율주행(FSD) 및 전방 카메라 상용화 시 비전 기반 신호 인식 기능으로 연동 고도화 계획) |
 | 시연 영상 다시 만들기 (선택) | ffmpeg, 나눔 글꼴 · 실제 도로 시뮬레이션은 Python + SUMO (`sim/README.md`) |
 
 ## APK 위치
