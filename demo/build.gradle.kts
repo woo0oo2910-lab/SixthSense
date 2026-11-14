@@ -75,3 +75,14 @@ tasks.register<JavaExec>("renderNavVideo") {
     environment("LC_ALL", "C.UTF-8")
     workingDir = projectDir
 }
+
+// 제출용 시연 영상 하나 (실제 앱 화면 + 센텀시티 주행 + 내비 위 알림 카드)
+tasks.register<JavaExec>("renderSubmissionVideo") {
+    group = "application"
+    description = "제출용 시연 영상 (SixthSense_시연영상.mp4)"
+    mainClass.set("com.signalassist.demo.SubmissionVideoKt")
+    classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs("-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Djava.awt.headless=true", "-Xmx3g")
+    environment("LC_ALL", "C.UTF-8")
+    workingDir = projectDir
+}

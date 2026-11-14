@@ -10,7 +10,7 @@
 | 제출 항목 | 위치 |
 |---|---|
 | APK (release) | [`apk/SixthSense_SixthSense_release.apk`](apk/SixthSense_SixthSense_release.apk) |
-| 시연 영상 | [`docs/시연영상/`](docs/시연영상/) (전체 시연 · 내비와 함께 쓰기 · 실제 앱 화면 · 센텀시티 3D) |
+| 시연 영상 | [`docs/시연영상/SixthSense_시연영상.mp4`](docs/시연영상/SixthSense_시연영상.mp4) (2분 10초) |
 | 소스 | `core/`(판단 엔진) · `app/`(Pleos Connect 앱) · `demo/`(시연·검증 도구) · `sim/`(실제 도로 시뮬레이션) |
 
 ---
@@ -49,21 +49,18 @@ adb install apk/SixthSense_SixthSense_release.apk
 | 빌드 | minSdk 28 / targetSdk 34 / compileSdk 34, Gradle 8.14, AGP 8.7, Kotlin 2.0, JDK 17 이상 |
 | 권한 | `android.car.permission.CAR_SPEED`(런타임), `CAR_POWERTRAIN`, `pleos.car.permission.CAR_SAFETY·SEATS·DOORS·LIGHTS·DRIVE`, 알림(`POST_NOTIFICATIONS`), 부팅 후 자동 시작(`RECEIVE_BOOT_COMPLETED`), 마이크(청각장애 프로필, 선택) |
 | Virtual Console | `adb forward tcp:8088 tcp:8088` 후 `http://127.0.0.1:8088/` |
-| 카메라 | 향후 확장 (현재 Pleos API 범위 외이나, 향후 자율주행(FSD) 및 전방 카메라 상용화 시 비전 기반 신호 인식 기능으로 연동 고도화 계획) |
+| 카메라 | 불필요 (Pleos 공개 API에 카메라 없음 → 신호 인식은 합성 영상·3D 시뮬레이션으로 검증, 아래 참고) |
 | 시연 영상 다시 만들기 (선택) | ffmpeg, 나눔 글꼴 · 실제 도로 시뮬레이션은 Python + SUMO (`sim/README.md`) |
 
 ## APK 위치
 [`apk/SixthSense_SixthSense_release.apk`](apk/SixthSense_SixthSense_release.apk) (release 빌드)
 
-## 시연 영상 (`docs/시연영상/`)
-| 파일 | 길이 | 내용 |
-|---|---|---|
-| `SixthSense_시연.mp4` | 3분 42초 | 전체 기능 · 시나리오 · 센텀시티 실제 도로 |
-| `SixthSense_내비와함께.mp4` | 1분 47초 | 내비 화면 위에 뜨는 알림 카드 (카드 내용은 앱 코드가 만든 실제 값) |
-| `SixthSense_실제앱_v0.2.mp4` | 2분 27초 | 0.2.0 실제 앱 화면 녹화 (Robolectric) |
-| `SixthSense_센텀시티.mp4` | 1분 33초 | 부산 센텀시티 실제 지도 기반 3D 주행 |
+## 시연 영상
+[`docs/시연영상/SixthSense_시연영상.mp4`](docs/시연영상/SixthSense_시연영상.mp4) (2분 10초, 알림음 포함) — 파일을 누른 뒤 오른쪽 위 다운로드(↓)로 받아 재생합니다.
 
-영상 다시 만들기: `./gradlew :demo:renderVideo` · `:demo:renderNavVideo` · `:demo:renderAppVideo` · `:demo:renderCentum` (앱 화면 녹화가 먼저 필요: `./gradlew :app:testDebugUnitTest --tests '*DemoRecordingTest*' --tests '*NavCompanionTest*' -Precord=true`)
+부산 센텀시티 해운대로를 한 번 달리며 ① 앱 화면을 볼 때(실제 앱 화면)와 ② 내비를 보며 달릴 때(내비 위 알림 카드)를 보여 줍니다. 챕터와 만든 방법은 [`docs/시연영상/README.md`](docs/시연영상/README.md)에 있습니다.
+
+다시 만들기: `./gradlew :app:testDebugUnitTest --tests '*DemoRecordingTest*' --tests '*NavCompanionTest*' -Precord=true && ./gradlew :demo:renderSubmissionVideo`
 
 ---
 

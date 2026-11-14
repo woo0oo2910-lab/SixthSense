@@ -56,11 +56,11 @@ private class Recording(val dir: File) {
     }
 }
 
-private class AppVideo(private val audio: AudioTimeline) {
+internal class AppVideo(private val audio: AudioTimeline) {
     private val recDir = listOf(File("../app/build/recording"), File("app/build/recording")).first { it.exists() }
     private val img = BufferedImage(1280, 720, BufferedImage.TYPE_3BYTE_BGR)
     private val g: Graphics2D = img.createGraphics().apply { setupHints() }
-    private var total = 0L
+    var total = 0L
 
     fun render(emit: (BufferedImage) -> Unit): Long {
         card(emit, 6_000) { opening() }
@@ -78,7 +78,7 @@ private class AppVideo(private val audio: AudioTimeline) {
         return total
     }
 
-    private fun card(emit: (BufferedImage) -> Unit, ms: Long, draw: (Long) -> Unit) {
+    internal fun card(emit: (BufferedImage) -> Unit, ms: Long, draw: (Long) -> Unit) {
         val frames = (ms * FPS / 1000.0).roundToInt()
         repeat(frames) { f ->
             val t = f * 1000L / FPS
@@ -90,7 +90,7 @@ private class AppVideo(private val audio: AudioTimeline) {
         total += ms
     }
 
-    private fun opening() {
+    internal fun opening() {
         Fonts.center(g, "SixthSense 0.2.0", 640f, 230f, Fonts.b(64f), Pal.text)
         Fonts.center(g, "실제 앱 화면 시연", 640f, 300f, Fonts.r(34f), Pal.sky)
         Fonts.center(g, "앱 화면은 0.2.0 소스를 그대로 실행해 그렸습니다 (Robolectric · 에뮬레이터 없이)", 640f, 400f, Fonts.r(24f), Pal.text)
@@ -105,7 +105,7 @@ private class AppVideo(private val audio: AudioTimeline) {
         Fonts.center(g, line2, 640f, 440f, Fonts.r(22f), Pal.dim)
     }
 
-    private fun closing() {
+    internal fun closing() {
         Fonts.center(g, "SixthSense 0.2.0", 640f, 170f, Fonts.b(48f), Pal.text)
         listOf(
             "기능 연결 상태를 숨기지 않음: 신호 인식·내비·차속·마이크가 연결되지 않으면 그대로 표시",
@@ -119,7 +119,7 @@ private class AppVideo(private val audio: AudioTimeline) {
 
     // ---- 정지 화면 3장 ----
 
-    private fun staticScreens(emit: (BufferedImage) -> Unit) {
+    internal fun staticScreens(emit: (BufferedImage) -> Unit) {
         val dir = File(recDir, "static")
         val shots = listOf(
             "01-driving-unconnected.png" to ("차량 보조 모드" to "연결되지 않은 기능은 '미연결'로 솔직하게 표시하고, 차량 연결부터 확인하게 합니다"),
@@ -146,7 +146,8 @@ private class AppVideo(private val audio: AudioTimeline) {
 
     // ---- 녹화 장면 ----
 
-    private fun scene(emit: (BufferedImage) -> Unit, name: String, title: String, centum: CentumRun? = null, synthetic: ScenarioPlayer? = null) {
+    internal fun scene(emit: (BufferedImage) -> Unit, name: String, title: String, centum: CentumRun? = null, synthetic: ScenarioPlayer? = null,
+                       from: Int = 0, to: Int = Int.MAX_VALUE) {
         val rec = Recording(File(recDir, name))
         val n = rec.frames
         val byIndex = rec.deliveries.groupBy { it.index }
@@ -154,13 +155,13 @@ private class AppVideo(private val audio: AudioTimeline) {
         fun speedAt(i: Int): Float = centum?.player?.step(i)?.speedKmh ?: synthetic?.sample(i)?.vehicle?.speedKmh ?: 0f
         // 알림 앞뒤는 실시간, 나머지는 빠르게
         val tl = ArrayList<Pair<Int, Float>>()
-        var t = 0.0
-        val end = (n - 1) / 10.0
+        var t = from / 10.0
+        val end = minOf(n - 1, to) / 10.0
         val fastMove = if (centum != null) 6f else 3f
         val fastStop = if (centum != null) 15f else 3f
         while (t <= end) {
             val idx = (t * 10).roundToInt().coerceAtMost(n - 1)
-            val near = events.any { e -> t in (e / 10.0 - 2.5)..(e / 10.0 + 4.0) } || t < 1.5
+            val near = events.any { e -> t in (e / 10.0 - 2.5)..(e / 10.0 + 4.0) } || t < from / 10.0 + 1.5
             val rate = if (near) 1f else if (speedAt(idx) < 0.5f) fastStop else fastMove
             tl += idx to rate
             t += rate / FPS
@@ -170,7 +171,7 @@ private class AppVideo(private val audio: AudioTimeline) {
         var camIdx = -1
         var last: LoggedDelivery? = null
         var lastAt = 0L
-        var lastIdx = -1
+        var lastIdx = from - 1
         val camImg = BufferedImage(960, 540, BufferedImage.TYPE_INT_RGB)
         tl.forEachIndexed { f, (idx, rate) ->
             val videoMs = f * 1000L / FPS

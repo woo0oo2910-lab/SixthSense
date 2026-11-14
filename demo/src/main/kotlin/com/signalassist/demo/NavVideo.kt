@@ -34,7 +34,7 @@ private class RecordedCard(
     val tone: TonePattern, val planTone: Boolean, val tapped: Boolean,
 )
 
-private class NavVideo(private val audio: AudioTimeline) {
+internal class NavVideo(private val audio: AudioTimeline) {
     private val dir = listOf(File("../app/build/recording/nav_cards"), File("app/build/recording/nav_cards")).first { it.exists() }
     private val cards = File(dir, "cards.tsv").readLines().drop(1).filter { it.isNotBlank() }.map { l ->
         val c = l.split("\t")
@@ -43,7 +43,7 @@ private class NavVideo(private val audio: AudioTimeline) {
     }
     private val img = BufferedImage(1280, 720, BufferedImage.TYPE_3BYTE_BGR)
     private val g: Graphics2D = img.createGraphics().apply { setupHints() }
-    private var total = 0L
+    var total = 0L
     private var lastRoad = "해운대로"
 
     fun render(emit: (BufferedImage) -> Unit): Long {
@@ -55,7 +55,7 @@ private class NavVideo(private val audio: AudioTimeline) {
         return total
     }
 
-    private fun card(emit: (BufferedImage) -> Unit, ms: Long, draw: (Long) -> Unit) {
+    internal fun card(emit: (BufferedImage) -> Unit, ms: Long, draw: (Long) -> Unit) {
         val frames = (ms * FPS / 1000.0).roundToInt()
         repeat(frames) { f ->
             val t = f * 1000L / FPS
@@ -79,7 +79,7 @@ private class NavVideo(private val audio: AudioTimeline) {
         ).forEachIndexed { k, l -> Fonts.center(g, l, 640f, 410f + k * 46, Fonts.r(24f), Pal.text) }
     }
 
-    private fun bootScene(t: Long) {
+    internal fun bootScene(t: Long) {
         Fonts.center(g, "시동 ON", 640f, 180f, Fonts.b(56f), Pal.text)
         Fonts.center(g, "부팅이 끝나면 BootReceiver 가 알림 엔진(포그라운드 서비스)을 켭니다", 640f, 240f, Fonts.r(24f), Pal.sky)
         if (t > 1_200) {
@@ -111,18 +111,18 @@ private class NavVideo(private val audio: AudioTimeline) {
 
     // ---- 주행: 예시 내비 화면 + 카드 ----
 
-    private fun drive(emit: (BufferedImage) -> Unit) {
+    internal fun drive(emit: (BufferedImage) -> Unit, from: Int = 0, to: Int = Int.MAX_VALUE) {
         val centum = CentumRun(audio, standaloneIndex = null, precompute = false)
         val player = centum.player
         val n = player.frameCount
         val byIndex = cards.groupBy { it.index }
         val events = cards.map { it.index }
         val tl = ArrayList<Pair<Int, Float>>()
-        var t = 0.0
-        val end = (n - 1) / 10.0
+        var t = from / 10.0
+        val end = minOf(n - 1, to) / 10.0
         while (t <= end) {
             val idx = (t * 10).roundToInt().coerceAtMost(n - 1)
-            val near = events.any { e -> t in (e / 10.0 - 3.0)..(e / 10.0 + 6.0) } || t < 2.0
+            val near = events.any { e -> t in (e / 10.0 - 3.0)..(e / 10.0 + 6.0) } || t < from / 10.0 + 2.0
             val rate = if (near) 1f else if (player.step(idx).speedKmh < 0.5f) 15f else 6f
             tl += idx to rate
             t += rate / FPS
@@ -130,7 +130,7 @@ private class NavVideo(private val audio: AudioTimeline) {
         val minimap = CentumMinimap(centum.map)
         val camImg = BufferedImage(960, 540, BufferedImage.TYPE_INT_RGB)
         var camIdx = -1
-        var lastIdx = -1
+        var lastIdx = from - 1
         var shown: RecordedCard? = null
         var shownAt = 0L // 영상 시간(ms)
         tl.forEachIndexed { f, (idx, rate) ->
